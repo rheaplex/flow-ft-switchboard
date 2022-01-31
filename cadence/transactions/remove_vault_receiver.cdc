@@ -1,4 +1,4 @@
-import FungibleTokenSwitchboard from 0xSWITCHBOARDADDRESS
+import FungibleTokenSwitchboard from "../contracts/FungibleTokenSwitchboard.cdc"
 
 transaction(vaultType: Type) {
 

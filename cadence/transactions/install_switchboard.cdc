@@ -1,5 +1,5 @@
-import FungibleToken from 0xFUNGIBLETOKENADDRESS
-import FungibleTokenSwitchboard from 0xSWITCHBOARDADDRESS
+import FungibleToken from "../contracts/FungibleToken.cdc"
+import FungibleTokenSwitchboard from "../contracts/FungibleTokenSwitchboard.cdc"
 
 transaction() {
 
@@ -20,3 +20,4 @@ transaction() {
         )
     }
 }
+ 

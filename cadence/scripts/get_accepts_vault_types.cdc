@@ -1,4 +1,4 @@
-import FungibleTokenSwitchboard from 0xSWITCHBOARDADDRESS
+import FungibleTokenSwitchboard from "../contracts/FungibleTokenSwitchboard.cdc"
 
 pub fun main(account: Address): [Type] {
     let acct = getAccount(account)
