@@ -20,19 +20,17 @@ pub contract FungibleTokenSwitchboard {
     // This is mostly future-proofing.
     //
     pub resource interface SwitchboardAdmin {
-        // If we want a 1:1 type guarantee for receivers, rather than allowing e.g. Forwarders, remove tokenType
-        // and get the type from the borrowed capability.
-        // * Think *very* carefully about how strongly to enforce the receiver capabilities being of the Vault type,
-        //   doing so adds a lot of safety but it removes flexibility (e.g. no Forwarders).
-        pub fun setVaultRecipient(_ newRecipient: Capability<&{FungibleToken.Receiver}>, tokenType: Type)
-        pub fun removeVaultRecipient(tokenType: Type)
+        pub fun setVaultRecipient(_ newRecipient: Capability<&{FungibleToken.Receiver}>, vaultType: Type)
+        pub fun removeVaultRecipient(vaultType: Type)
     }
 
     // To allow public access to information that callers of the forwarder might need
     //
     pub resource interface SwitchboardPublic {
         pub fun acceptsVault(type: Type): Bool
-        pub fun acceptsVaultTypes(): [Type]
+        //FIXME: if possible, remove acceptsVaultTypeIdentifiers and uncomment acceptsVaultTypes
+        //pub fun acceptsVaultTypes(): [Type]
+        pub fun acceptsVaultTypeIdentifiers(): [String]
     }
 
     // NOTE: Create a public capability of the FungibleToken.Receiver constrained to <&FungibleToken.Receiver, &SwitchboardPublic>
@@ -69,20 +67,27 @@ pub contract FungibleTokenSwitchboard {
         // setVaultRecipient
         //
         // Function that adds or changes the recipient for the given type.
+        // Note two explicit design decisions here:
+        // 1. We do not check that the Capability is in the same account as this resource.
+        //    This allows tokens to be forwarded to Vaults in other accounts.
+        // 2. We do not check that the Capability points to a Vault of the provided vaultType.
+        //    This is to make sure that other resources can be sued, for example a token frowarder.
+        // If we tried to prevent these use cases, they would be difficult or impossible to stop.
+        // And doing so would remove flexibility from this resource.
         //
-        pub fun setVaultRecipient(_ newRecipient: Capability<&{FungibleToken.Receiver}>, tokenType: Type) {
+        pub fun setVaultRecipient(_ newRecipient: Capability<&{FungibleToken.Receiver}>, vaultType: Type) {
             pre {
                 newRecipient.borrow() != nil: "Could not borrow Receiver reference from the Capability"
             }
-            self.recipients[tokenType.identifier] = newRecipient
+            self.recipients[vaultType.identifier] = newRecipient
         }
 
         // removeVaultRecipient
         //
         // Function that removes the recipient of the forwarder for the given type.
         //
-        pub fun removeVaultRecipient(tokenType: Type) {
-            self.recipients.remove(key: tokenType.identifier)
+        pub fun removeVaultRecipient(vaultType: Type) {
+            self.recipients.remove(key: vaultType.identifier)
         }
 
         // acceptsVault
@@ -95,20 +100,30 @@ pub contract FungibleTokenSwitchboard {
           return self.recipients.containsKey(type.identifier)
         }
 
+        //FIXME: if possible, remove acceptsVaultTypeIdentifiers and uncomment acceptsVaultTypes
+
         // acceptsVaultTypes
         //
-        // Function that returns the types of Vault that this forwarder accepts.
+        // Function that returns the Vault types that this switchboard accepts.
         // This is expensive until we can use Type as keys.
-        // FIXME: Note that if one of the capabilities is broken this will fail.
         //
-        pub fun acceptsVaultTypes(): [Type] {
+        /*pub fun acceptsVaultTypes(): [Type] {
           let types: [Type] = []
-          for vaultCap in self.recipients.values {
-              // If we wish to be more robust, we can handle a failure to borrow here
-              let type = vaultCap.borrow()!.getType()
-              types.append(type)
+          for typeString in self.recipients.keys {
+              if let type = CompositeType(typeString) {
+                types.append(type)
+              }
           }
           return types
+        }*/
+        
+        // acceptsVaultTypeIdentifiers
+        //
+        // Function that returns the Vault types string identifiers that this switchboard accepts.
+        // This is a stop-gap until `CompositeType()` is supported.
+        //
+        pub fun acceptsVaultTypeIdentifiers(): [String] {
+          return self.recipients.keys
         }
 
         pub init() {

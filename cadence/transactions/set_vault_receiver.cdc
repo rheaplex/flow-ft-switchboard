@@ -1,6 +1,10 @@
 import FungibleToken from "../contracts/FungibleToken.cdc"
 import FungibleTokenSwitchboard from "../contracts/FungibleTokenSwitchboard.cdc"
 
+// NOTE: This is for the simple case where the Vault Type is the same as the Vault Capability.
+//       Circumstances where this may not be the case include using a forwarder.
+//       You will need to create a transaction to handle this case, but do be aware it exists.
+
 transaction(recipientPath: PublicPath) {
 
     let switchboardRef: &FungibleTokenSwitchboard.Switchboard
@@ -19,6 +23,6 @@ transaction(recipientPath: PublicPath) {
     }
 
     execute {
-        self.switchboardRef.setVaultRecipient(self.recipientCapability, tokenType: self.vaultType)
+        self.switchboardRef.setVaultRecipient(self.recipientCapability, vaultType: self.vaultType)
     }
 }

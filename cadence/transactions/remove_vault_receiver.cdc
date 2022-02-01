@@ -10,6 +10,6 @@ transaction(vaultType: Type) {
     }
 
     execute {
-        self.switchboardRef.removeVaultRecipient(tokenType: vaultType)
+        self.switchboardRef.removeVaultRecipient(vaultType: vaultType)
     }
 }
